@@ -32,5 +32,10 @@ After building from the previous step
 # make install
 ```
 
+## Uninstalling
+```
+# make uninstall
+```
+
 ## Documentation
 Available soon
