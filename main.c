@@ -1,4 +1,4 @@
-/* candor.c
+/* main.c
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -13,7 +13,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 'candor' is JACK-enabled realtime performance software for use
 with a monome (http://www.monome.org/).
-Copyright 2012 murray foster */
+Copyright 2014 murray foster */
 
 #include <stdio.h>
 #include <stdlib.h>
