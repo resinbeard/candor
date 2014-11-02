@@ -8,7 +8,7 @@ all:
 	rm libficus.c libficus.h rtqueue.c rtqueue.h config.h
 install:
 	cp candor /opt/bin/candor
-uninstall
+uninstall:
 	rm /opt/bin/candor
 clean: 
 	rm candor
