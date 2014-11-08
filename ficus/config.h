@@ -22,8 +22,8 @@ mrafoster at gmail dawtcom */
 #define NUM_SAMPLES 48 /* number of sound files to possibly store */
 
 #define NUM_CHANNELS 8  /* number of possible in/out channels */
-/*  1999999 */
-#define IN_FRAMES 99999 /* size of audio input buffer in JACK FRAMES,
+
+#define IN_FRAMES 999999 /* size of audio input buffer in JACK FRAMES,
 			   PER CHANNEL. change this size based 
 			   on available system memory and intended
 			   application. under-allocating frames 
@@ -32,7 +32,7 @@ mrafoster at gmail dawtcom */
 			   too long. Overallication will zombify your
 			   JACK client if you queue too much data. */
 
-#define OUT_FRAMES 99999 /* same as above EXCEPT for output and
+#define OUT_FRAMES 999999 /* same as above EXCEPT for output and
 			    this output buffer size is set
 			    PER SOUND FILES ((NUM_SAMPLES). Each 
 			    soundfile in this system possesses its own
