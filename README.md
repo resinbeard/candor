@@ -3,7 +3,6 @@ sequencer-sampler for musical performance
 
 This linux software enables a monome 256 user to capture and playback audio from up to 8 channels simultaneously, managing a maximum of 48 remembered wav soundfiles without a computer display. It is a client of the Jack Audio Connection Kit.
 
-Written by Murray Foster
 Contact me at mrafoster@gmail.com
 
 ## Dependencies
