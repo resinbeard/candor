@@ -429,8 +429,12 @@ sampler_page_chooser(const monome_event_t *e, int button)
     case 3:
       /* capture page */
       if( !sampler_capture_leds[0][button] && 
-	  sampler_capture_leds[1][button] )
+	  sampler_capture_leds[1][button] ) {
 	ficus_killcapture(button);
+	for(c=0;c<48;c++)
+	  if(sampler_capture_armed_order[c]==button)
+	    sampler_capture_armed_order[c] = -1; 
+      }
       else
 	if( sampler_capture_leds[0][button] &&
 	    !sampler_capture_leds[1][button] )
@@ -471,8 +475,8 @@ sampler_page_chooser(const monome_event_t *e, int button)
 	    {
 	      sampler_capture_leds[0][button] = 1;
 	      sampler_capture_armed_order[sampler_capture_armed_pos] = button;
-	      sampler_capture_armed_count = sampler_capture_armed_count++;
-	      sampler_capture_armed_pos = sampler_capture_armed_pos++;
+	      sampler_capture_armed_count += 1;
+	      sampler_capture_armed_pos += 1;
 	      if( sampler_capture_armed_pos == 48 )
 		sampler_capture_armed_pos = 0;
 	    }
@@ -1758,25 +1762,55 @@ void
 trigger_active_capture_samples()
 {
   int c = 0;
+  int c_count = 0;
   int armed_count = 0;
-  int bank = 0;
+  int bank = -1;
   int finallimit=0;
   int passthrough = 0;
-  
-  bank = sampler_capture_armed_order[sampler_capture_armed_pos_read];
 
+  c = sampler_capture_armed_pos_read;
+  while(1) {
+    bank = sampler_capture_armed_order[c];
+    if(bank != -1) {
+      sampler_capture_armed_pos_read = c;
+      break;
+    }
+    else
+      c+=1;
+    if(c==48)
+      c=0;
+    c_count+=1;
+    if(c_count==48)
+      break;
+  }
+      
+  fprintf(stderr,"sampler capture armed pos read: %d\n",bank);
+  
   if( bank != -1 ) {
     if( !sampler_capture_leds[0][bank] && 
 	sampler_capture_leds[1][bank] )
       {
 	ficus_killcapture(bank);
 	sampler_capture_armed_order[bank] = -1;
-	sampler_capture_armed_count = sampler_capture_armed_count - 1;
-	sampler_capture_armed_pos_read = sampler_capture_armed_pos_read++;
-	if( sampler_capture_armed_pos_read == 48 )
-	  sampler_capture_armed_pos_read = 0;
+	sampler_capture_armed_count -= 1;
+
+	sampler_capture_armed_pos_read+=1;
 	if(sampler_capture_armed_count > 0) {
-	  bank = sampler_capture_armed_order[sampler_capture_armed_pos_read];
+	  c = sampler_capture_armed_pos_read;
+	  while(1) {
+	    bank = sampler_capture_armed_order[c];
+	    if(bank != -1) {
+	      sampler_capture_armed_pos_read = c;
+	      break;
+	    }
+	    else
+	      c+=1;
+	    if(c==48)
+	      c=0;
+	    c_count+=1;
+	    if(c_count==48)
+	      break;
+	  }
 	  passthrough = 1;
 	}
 	else
@@ -1814,9 +1848,7 @@ trigger_active_capture_samples()
 	sampler_capture_loadcheck[bank]=1;
       }
   } else {
-    sampler_capture_armed_pos_read = sampler_capture_armed_pos_read++;
-    if( sampler_capture_armed_pos_read == 0 )
-      sampler_capture_armed_pos_read = 0;
+    sampler_capture_armed_pos_read+=1;
   }
 } /* trigger_active_capture_samples */
 
@@ -1951,13 +1983,14 @@ load_from_file(char *path)
   if( infile!=NULL )
     while( fgets(string_buffer, 200, infile)!=NULL)
       {
+	fprintf(stderr,"%s %d\n", &filepath, &bank);
 	sscanf(string_buffer, "%s %d\n", filepath, &bank);
         ficus_loadfile(filepath, bank);
+	sampler_capture_loadcheck[bank]=0;
       }
   else
     /* return error */
     return 1;
-  
   return 0;
 } /* paths_from_file */
 
@@ -2511,16 +2544,18 @@ main(int argc, char *argv[])
   if( connchan )
     ficus_connect_channels(8,8);
 
-  /* load files */
-  if( file_path!=NULL )
-      load_from_file(file_path);
-
   pthread_t monome_thread_id;
   pthread_create(&monome_thread_id, NULL, monome_thread, monome);
   pthread_detach(&monome_thread_id);
-
+  
   printf("press <ENTER> to quit\n\n");
 
+  sleep(1);
+  
+  /* load files */
+  if( file_path!=NULL )
+      load_from_file(file_path);
+  
   int key = 0;
   while(!key) {
     key = getchar();
