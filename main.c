@@ -444,11 +444,13 @@ sampler_page_chooser(const monome_event_t *e, int button)
 	       is a set limit. */
 
 	    /* impose a capture limit if one is set */
-	    if (!sampler_capture_limit)
+	    if (!ficus_durationf_out(sampler_capture_limit))
 	      finallimit=0;
-	    else
-	      finallimit=ficus_durationf_out(sampler_capture_limit) * 
+	    else {
+	      finallimit=ficus_durationf_out(sampler_capture_limit) *
 		(sampler_capture_limit_leds[0] + 1);
+	    }
+	    
 	    ficus_capturef(button, finallimit);
 	    sampler_capture_leds[0][button]=0;
 	    /* we have to wait to load this sample until we're
