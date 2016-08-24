@@ -40,4 +40,4 @@ After building from the previous step
 ```
 
 ## Documentation
-http://www.murrayfoster.com/candor_manual/index.html
+http://bonemurmurer.github.io/candor/
