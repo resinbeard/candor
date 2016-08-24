@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="../../assets/ico/favicon.png">
+    <link rel="stylesheet" id="font-awesome-css" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" type="text/css" media="screen">
+    <title>candor user manual</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="bootstrap-3.0.0/dist/css/bootstrap.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="grid.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>    
+    <div class="container">
+
+      <div class="page-header">
+        <h1><i>candor</i> user manual</h1>
+	<p>
+	  <img src="images/header.jpg">
+	</p>
+        <p>welcome to the <i>candor</i> realtime music system</p>
+	<p>this linux software enables a monome 256 user to capture and playback audio from up to 8 channels simultaneously, managing a maximum of 48 remembered wav soundfiles without a computer display.  it is a client of the Jack Audio Connection Kit (<a target="_blank" href="http://jackaudio.org">http://jackaudio.org</a>, <a target="_blank" href="http://www.monome.org/">http://www.monome.org/</a>).</p><br />
+	<p>please file questions, concerns, and bugs on <a target="_blank" href="https://github.com/bonemurmurer/candor">github</a> or send directly to me at <a href="mailto:mrafoster@gmail.com">mrafoster@gmail.com</a>.
+      </div>
+
+      <div id="tableofcontents">
+	<h4><b>table of contents</b></h4>
+
+	<ol>
+	  <li><a href="#systemrequirements">required dependencies</a></li>
+	  <li><a href="#installation">building and installation</a></li>
+	  <li><a href="#runtime">runtime options</a></li>
+	  <li><a href="#overview">interface overview</a></li>
+	  <ol>
+	    <li><a href="#osc">open sound control</a></li>
+	    <li><a href="#monome">monome</a></li>
+	    <li><a href="#midi">midi</a></li>
+	  </ol>
+	  <li><a href="#gettingstarted">getting started</a></li>
+	  
+	  <li><a href="#sampler">candor sampler</a></li>
+	  <ol>
+	    <li><a href="#sampleroverview">overview</a></li>
+	    <li><a href="#samplermix">assigning channels for capture/playback</a></li>
+	    <li><a href="#samplercapture">capturing and storing a new sound</a></li>
+	    <li><a href="#samplerplayback">playing a stored sound</a></li>
+	    <li><a href="#samplerloop">looping a sound</a></li>
+	    <li><a href="#samplercapturelimit">capturing sound for a limited duration (or, how to keep your audio loops in phase)</a></li>
+	    <li><a href="#samplerstop">stopping a currently playing sound</a></li>
+	    <li><a href="#stereomonitors">monitoring channel inputs</a></li>
+	    <li><a href="#effects">applying simple effects to a sound</a></li>
+	    <ol>
+	      <li><a href="#effects_speed">playback speed, reversed playback</a></li>
+	      <li><a href="#effects_ramps">attack/decay ramps, reduced clipping</a></li>
+	    </ol>
+	  </ol>
+
+	  <li><a href="#sequencer">candor sequencer</a></li>
+	  <ol>
+	    <li><a href="#sequenceroverview">overview</a></li>
+	    <li><a href="#sequencerpauseresume">pausing and resuming the sequencer</a></li>
+	    <li><a href="#sequencerclock">sequencer as a master clock or slave</a></li>
+	    <li><a href="#taptemporecord">setting the sequencer to follow tap-tempo</a></li>
+	    <li><a href="#sequencertempo">adjusting the sequencer's tempo</a></li>
+	    <li><a href="#sequencerassign">assigning a sound to a step's voice</a></li>
+	    <li><a href="#sequencertoggle">toggling a step's voice to trigger</a></li>
+	  </ol>
+	  <li><a href="#opensoundcontrol">open sound control</a></li>
+	  <ol>
+	    <li><a href="#opensoundcontroloverview">overview</a></li>  
+	  </ol>
+	</ol>
+      </div>
+      
+      <hr>
+
+      <div id="systemrequirements">
+	<h4><b>1. required dependencies</b></h4>
+	
+	<p>
+	  <ul>
+	    <li>linux, maybe mac os x</li>
+	    <li>libsndfile - C library for reading/writing audio files (<a target="_blank" href="http://www.mega-nerd.com/libsndfile/">http://www.mega-nerd.com/libsndfile/</a>)</li>
+	    <li>alsa and alsa development libraries - (<a target="_blank" href="http://www.alsa-project.org/">http://alsa-project.org/</a>)</li>
+	    <li>JACK server installed and running with development libraries - (<a target="_blank" href="http://jackaudio.org">http://jackaudio.org</a>)</li>
+	    <li>liblo - lightweight OSC implementation (<a target="_blank" href="http://liblo.sourceforge.net">http://liblo.sourceforge.net</a>)</li>
+	    <li>libmonome - C library for interfacing with monome (<a target="_blank" href="https://github.com/monome/libmonome">https://github.com/monome/libmonome</a>)</li>
+	  </ul>
+	</p>
+      </div>
+
+      <hr>
+      
+      <div id="installation">
+	<h4><b>2. building and installation</b></h4>
+	<ol>
+	  <li>
+	    <p>
+	      Download <i>candor</i> from github and extract zip archive.
+<pre>
+$ wget https://github.com/bonemurmurer/candor/archive/master.zip
+$ unzip master.zip
+</pre>
+	    </p>
+	  </li>
+
+	  <li>
+	    <p>
+	      Descend into extracted directory and build <i>candor</i>.
+<pre>
+$ cd candor-master
+$ make
+</pre>
+Installing <i>candor</i> is optional.  You can run it from anywhere on your system, installing just makes it more convenient to launch.  If you do install, keep in mind you <b>must</b> run <i>candor</i> with a non-default directory by appending the "-pa" option.
+<pre>
+# make install
+</pre>
+	    </p>
+	  </li>
+
+	  <li>
+	    <p>
+	      Tidy up.  Either remove sources (candor-master) or move them somewhere for later.
+<pre>
+$ cd ..
+$ rm master.zip
+$ mv candor-master ~/src/.
+</pre>
+	    </p>
+	  </li>
+	</ol>
+      </div>
+
+      <hr>
+
+      <div id="runtime">
+	<h4><b>3. runtime options</b></h4>
+<pre>
+
+$ ./candor -h
+welcome to the candor realtime music system
+
+Usage: candor [options] [arg]
+
+Options:
+ -h,  --help          displays this menu
+ -p,  --port          set osc interface receiving port. default: 94606
+ -sp, --send-port     set osc interface sending port. default: 946407
+ -n,  --name          monome device name to connect to. no default
+ -m,  --monome        disables serialosc, enables manual monome port configuration. no default
+ -mi, --midi          enables alsa midi device, ex: 'hw:VSL'
+ -b,  --bitdepth      set bitdepth of capture to 8,16,24,32,64, or 128. default: 24
+ -pa, --path          set directory of where to store captured sounds. default: 'samples/'
+ -pr, --prefix        set prefix name for all captured sounds. default: 'sample'
+ -f,  --file          set path of session file to load preexisting sounds.
+
+see murrayfoster.com for documentation
+
+</pre>
+      </div>
+      
+      <hr>
+
+            <div id="overview">
+	<h4><b>4. interface overview</b></h4>
+	<p>
+	  A user may interact with <i>candor</i> using two methods: <i>open sound control</i>'s network protocol or a monome.
+	</p>
+	<ol>
+	  <li>
+	    <p>
+	      <h5 id="osc"><b>open sound control</b></h5>
+	    </p>
+	    <p>
+	      <i>candor</i> itself provides an open sound control (<a target="_blank" href="http://opensoundcontrol.org">http://opensoundcontrol.org</a>) interface to ficus and candor available at port 94606. By passing the runtime option "-p" or "--port" at startup, this default port may be overridden.  Specifics of this interface are further detailed in the <a href="#opensoundcontrol">open sound control</a> section.  
+	    </p>
+	  </li>
+	  <li>
+	    <p>
+	      <h5 id="monome"><b>monome</b></h5>
+	    </p>
+	    <p>
+	      In order to access a monome, <i>candor</i> will by default use serialoscd's default port 12002 and focus on the first monome it finds.  In order to manually assign a monome with a known address (like if you use multiple monome grids), pass the runtime option "-m" or "--monome" with the monome's serialosc port number at startup.
+	    </p>
+	    <p>
+	      The monome's quadrants I and II provide main sampler/sequencer functionality while III and IV are used to assign sounds to each step of the sequencer.  Functional aspects of this interface are described in the <a href="#sampler">sampler</a> and <a href="#sequencer">sequencer</a> sections.  
+	      <div id="layout_monome_key" class="sampler_legend_color"></div> <span class="legend_text"> sampler, </span> <div id="layout_monome_key" class="sequencer_legend_color"> </div> <span class="legend_text">sequencer,</span> <div id="layout_monome_key" class="stepassign_legend_color"></div> <span class="legend_text"> and step assignment.</span>
+	      <br >
+	      <br >
+	      <div id="layout_full_monome">
+		<center class="top_monome_key"><div class="left_monome_key sequencer_color" id="layout_monome_key"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div></center><br />
+		<center><div class="left_monome_key sequencer_color" id="layout_monome_key"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div></center><br />
+		<center><div class="left_monome_key sequencer_color" id="layout_monome_key"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div></center><br />
+		<center><div class="left_monome_key sequencer_color" id="layout_monome_key"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div></center><br />
+		<center><div class="left_monome_key sequencer_color" id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div></center><br />
+		<center><div class="left_monome_key sequencer_color" id="layout_monome_key"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div></center><br />
+		<center><div class="left_monome_key sequencer_color" id="layout_monome_key"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div></center><br />
+		<center><div class="left_monome_key sequencer_color" id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div></center><br />
+		<center><div class="left_monome_key" id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center><br />
+		<center><div class="left_monome_key" id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center><br />
+		<center><div class="left_monome_key" id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center><br />
+		<center><div class="left_monome_key" id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center><br />
+		<center><div class="left_monome_key" id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center><br />
+		<center><div class="left_monome_key" id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center><br />
+		<center><div class="left_monome_key" id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center><br />
+		<center><div class="left_monome_key" id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center><br />
+	      </div>
+	    </p>
+	  </li>
+	  <br />
+	  <li>
+	    <p>
+	      <h5><b>midi</b></h5>
+	    </p>
+	    <p>
+	      Midi in <i>candor</i> is extremely limited.  It uses raw alsa and only allows triggering of capturing armed sample and starting/stopping the sequencer.  When starting <i>candor</i>, specify the "-mi" or "--midi" option and the alsa name of your midi interface such as "hw:VSL". Triggering samples thru midi allows one to trigger capture of multiple samples, one at a time, in the order they are armed on the monome interface. To trigger capturing of armed samples, send message from your midi device to channel #1 note #0. To start/stop the sequencer, send message thru your midi device channel #1 note #1.      
+	    </p>
+	  </li>
+	</ol>
+      </div>
+
+
+      <hr >
+
+      <div id="gettingstarted">
+	<h4><b>5. getting started</b></h4>
+	<ol>
+	  <li>
+	    <p>
+	      Start <i>serialosc</i> and plug in your monome.
+<pre>
+$ serialoscd
+serialosc [m256-114]: connected, server running on port 10774
+</pre>
+	     </p>
+	  </li>
+	  <li>
+	    <p>
+	      Start jackd and then <i>candor</i> or start <i>candor</i> and jackd will be started automatically with your saved jackd settings.
+	      <pre>
+$ qjackctl &
+$ ./candor</pre>
+	    </p>
+	  <li>
+	    <p>
+	      By default, <i>candor</i> will start up a temporary osc server on port 94606 and ask serialoscd for a list of devices.  The port belonging to the first monome that is found will be selected for communication.  After recording that port number, the original osc server exits and a new, permanent osc server is constructed again on port 94606.  The new server is used as <i>candor</i>'s osc's interface.
+	    </p><br />
+	    <p>
+<img src="images/started.jpg">
+	    </p>
+	  </li>
+	</ol>
+      </div>
+
+      <hr>
+
+      <div id="sampler">
+	<h4><b>6. candor sampler</b></h4>
+	<ol>
+	  <li>
+	    <p id="sampleroverview">
+	      <h5><b>overview</b></h5>
+	    </p>
+	    <p>
+	      The sampler is <i>candor</i>'s audio component.  It is responsible for storing, recalling, capturing, playing back, and mixing 48 remembered sounds.  For each of the sampler's features there is a monome-illustrated description.
+	    </p>
+	    <p>
+	      The monome sampler interface is divided up into two main parts: the control row and the remembered sounds. between these elements lies a row which switches channel monitoring (we won't worry about this for now).
+	    </p>
+	    <p>
+	      <div id="layout_monome_key" class="remembered_sounds_legend_color"></div> <span class="legend_text"> remembered sounds, </span> <div id="layout_monome_key" class="control_row_legend_color"> </div> <span class="legend_text">control row,</span> <div id="layout_monome_key" class="monitors_legend_color"></div> <span class="legend_text"> monitors select</span>
+	    </p>
+	    <br />
+	    <br />
+	    <p>
+	      <div id="layout_quadrant_sampler_monome">
+		<center class="top_monome_key"><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div></center>
+		<center><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div></center>
+		<center><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div></center>
+		<center><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div></center>
+		<center><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div></center>
+		<center><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div></center>
+		<center><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div></center>
+		<center><div id="layout_monome_key" class="control_row_color"></div><div id="layout_monome_key" class="control_row_color"></div><div id="layout_monome_key" class="control_row_color"></div><div id="layout_monome_key" class="control_row_color"></div><div id="layout_monome_key" class="control_row_color"></div><div id="layout_monome_key" class="control_row_color"></div><div id="layout_monome_key" class="control_row_color"></div><div id="layout_monome_key" class="control_row_color"></div>
+		</center>
+	      </div>
+	    </p>
+	    <br />
+	    <p>
+	      The <b>control row</b> represents a group of actions.  The <b>remembered sounds</b> represent a group of items to act upon.
+	    </p>
+	    <p>
+	      For example, pressing one of the remembered sounds will perform the action selected in the control row upon that pressed sound.  There exist 8 different actions available from the <b>control row</b>, enumerated from left to right:
+	      <ol start="0">
+		<li>playback</li>
+		<li>loop</li> 
+		<li>playback modifier</li>
+		<li>capture</li>
+		<li>capture duration</li>
+		<li>input channel mixing</li>
+		<li>output channel mixing</li>
+		<li>stop all playback</li>
+	      </ol><br />
+	      The interactions are grouped by task, so hopefully it'll be a little easier to get started.  Some of the functions of the control row have dual roles, so please read the following sections carefully.
+	    </p>
+	  </li><br />
+	  <li>
+	    <p id="samplermix">
+	      <h5><b>assigning channels for capture/playback</b></h5>
+	    </p>
+	    <p>
+	      <i>candor</i> offers 8 capture and 8 playback channels.  By way of the open sound control interface, each remembered sound may be captured/played from/thru any or all of the 8 channels at once.  The monome interface offers 6 rows of 8 sounds, each row may capture/play from/thru any or all of the 8 channels at once. 
+	    </p>
+	    <p>
+	      The capture/playback channel assignment is one of the sampler's monome functions whose top-48 pads do not correspond to the remembered sounds.  When you're in either of these modes, each row represents the enabled/disabled channels for that row of sounds, each row of pads representing channel capture/playback 0-7, left to right.  
+	    </p>
+	    <p>
+	      If we wanted to <u>playback</u> all sounds of the top row thru channel 1, we would:
+	      <ol>
+		<li>Select control row button 6 (playback mixing)</li>
+		<li>Select the second button on the top row, enabling channel 1 output for sounds on that row</li>
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+	      </ol>
+	    </p>
+	    <p>
+	      If we also wanted to <u>playback</u> all sounds of the second from top row on channels 0, 3, 5, and 7:
+	      <ol>
+		<li>Select control row button 6 (playback mixing)</li>
+		<li>Select the monome pads corresponding to channel 0, 3, 5, and 7</li>
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+	      </ol>
+	    </p>
+	    <p>
+	      Lastly, if we needed to <u>capture</u> audio from channel 0 to the top row and from channel 1 to the row underneath:
+	      <ol>
+		<li>Select control row button 5 (capture mixing)</li>
+		<li>On the top row, select the monome pad corresponding to channel 0</li>
+		<li>On the row underneath, select the monome pad corresponding to channel 1</li>
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+	      </ol>
+	    </p>
+	  </li><br />
+	  <li>
+	    <p id="samplercapture">
+	      <h5><b>capturing and storing a new sound</b></h5>
+	    </p>
+	    <p>
+	      After assigning one or more capture channels, we are now ready to capture and store our first sound.  If you haven't overridden the prefix or filepath defaults, new samples will be stored in the same location as <i>candor</i>, but in a new directory called "sounds".
+	    </p>
+	    <p>
+	      There are three steps for capturing a sound using the monome:<br /> 
+	      <ol>
+		<li>Arm the desired sound.</li> 
+		<li>Begin capture on the desired sound.</li>
+		<li>Stop capture.</li>
+	      </ol>
+	    </p>
+	    <p>
+	      The concept of "arming" has been introduced to prevent careless fingers from accidentally overwriting a hard-earned sound.
+	    </p>
+	    <p>
+	      If we wanted to <u>capture</u> audio to sound 0 from its assigned channels, we would: 
+	      <ol>
+		<li>Select control row button 3 (capture)</li>
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+		<li>Arm sound 0 by pressing its corresponding pad; the pad will blink to indicate it has been "armed" but not capturing.</li>
+		<div id="layout_monome_key" style="background-color: yellow"></div> Armed/blinking
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key" style="background-color: yellow;"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+		<li>To begin capturing on sound 0, press its corresponding pad and that button's light will turn solid to indicate audio is being recorded.</li>
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+		<li>To stop capture on sound 0, press its pad again and the LED will turn off to indicate recording has finished and the sound has been stored.</li>
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+	      </ol>  
+	    </p>
+	  </li><br />
+	  <li>
+	    <p id="samplerplayback">
+	      <h5><b>playing a stored sound</b></h5>
+	    </p>
+	    <p>
+	      Finally, what we've all been waiting for: actually playing some audio.  Of course, before we can make some noise, we must have already loaded a noise/sound.  <i>candor</i> currently only supports wav files.  Wav's must be mono and (should) share the same samplerate with your JACK server.  Loading a sound can be accomplished by either:
+	      <ol>
+		<li>Providing the location of a text file containing paths to pre-existing sounds.</li>
+		<li><a href="#samplercapture">Capturing a new sound</a>.</li>
+	      </ol>
+	    </p>
+	    <p>
+	      If you'd like to provide a file containing a map of pre-existing sounds, you must create a new text file.  It can be of any name, and containing on each line one soundfile's path followed by the sound number to map it to. Pass that file's location as an argument of runtime option "-f" or "--file".
+</p>
+<p>
+For example, to map sounds across the first 8 of 48 sounds:
+<pre>
+candorSession0.txt:
+/home/linuxuser/candor/samples/whackysound.wav 0
+/home/linuxuser/candor/samples/crazysound.wav 1
+/home/linuxuser/candor/samples/coolsound.wav 2
+/home/linuxuser/candor/samples/mellowsound.wav 3
+/home/linuxuser/candor/samples/groovingsound.wav 4
+/home/linuxuser/candor/samples/surfysound.wav 5
+/home/linuxuser/candor/samples/krautrocksound.wav 6
+/home/linuxuser/candor/samples/wintersound.wav 7
+</pre>
+</p>
+And then to load it:
+<p>
+<pre>
+candor --file ~/candorSession0.txt
+</pre>
+</p>
+<br />
+<p>
+	    <p>
+	      If we wanted to playback audio from sound 0, we would: 
+	      <ol>
+		<li>Select control row button 0 (playback).</li>
+		<li>Press the pad corresponding to sound 0.  The pad will light while sound is playing.</li>
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+		<li>The pad corresponding to sound 0 will turn off to indicate it has finished playing.</li>
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+	      </ol>  
+	    </p>
+	  </li><br />
+	  <li>
+	    <p id="samplerloop">
+	      <h5><b>looping a sound</b></h5>
+	    </p>
+	    <p>
+	      When you set a sound to loop, you do two things:
+	      <ol>
+		<li>During playback: instead of stopping when the sampler reaches the end of that sound, the sound is repeated until told to stop.</li>
+		<li>Upon the successful capture and storage of new audio to that sound, playback immediately begins for that sound.</li>
+	      </ol>
+	    </p>
+	    <p>
+	    <p>
+	      If we wanted to set sound 0 to loop, we would: 
+	      <ol>
+		<li>Select control row button 1 (loop).</li>
+		<li>Press the pad corresponding to sound 0.  The pad will light to indicate sound 0 is looping.</li>
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+		<li>To stop looping of sound 0, press the corresponding pad again, the light will go off, and the sound will not restart when it has finished.</li>
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+	      </ol>  
+	    </p>
+	  </li><br />
+	  <li>
+	    <p id="samplercapturelimit">
+	      <h5><b>capturing sound for a limited duration</b></h5>
+	    </p>
+	    <p>
+	      <i>candor</i> provides a facility for predetermining how long a sound will capture for.  Taking the duration from an existing sound (primary sound), the newly captured sound's duration is either the same length or a multiple of the primary sound.  This will prevent your sound loops from drifting out of phase and allow them more predictable behavior.
+	    </p>
+	    <p>
+	      For the rest of this section, it is assumed there is a sample already loaded in sound 0.  We want to setup sound 8 for limited capturing. To limit capture time:
+	      <ol>
+		<li>Select control row button 4 (capture limit)</li>
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+		<li>
+		  <p>
+		    <u>Hold control row pad 4</u> (capture limit) and press sound 0's corresponding pad; <i>candor</i> will use sound 0's duration for limiting all future sound captures.
+		  </p>
+		<div id="layout_monome_key" style="background-color: yellow"></div> Primary sound/blinking
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key" style="background-color: yellow;"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+		<li>
+		  <p>
+		    Now, set the multiple of sound 0's duration to record sound 8 with.  From top to left and top to bottom, the possibilites are [0-47]. We'll set it to 21 by pressing the corresponding pad, the LEDs will fill to represent that multiple.  Sound 8 can now be captured.
+		  </p>
+		  <div id="layout_monome_key" style="background-color: yellow"></div> Primary sound/blinking
+		</li>
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key" style="background-color: yellow;"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div></center>
+		    <center><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div></center>
+		    <center><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+		<li>After you've finished capturing sound 8, to stop limiting duration of newly captured sounds, again <u>hold control row pad 4</u>(capture limit) and press sound 0's corresponding pad.  Sound 0 will stop blinking and when capturing new sounds, they will not be time-constrained.</li>
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div></center>
+		    <center><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div></center>
+		    <center><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+	      </ol>
+	    </p>
+	  </li><br />
+	  <li>
+	    <p id="samplerstop">
+	      <h5><b>stopping a currently playing sound</b></h5>
+	    </p>
+	    <p>
+	      There are two ways to stop a currently playing sound:
+	      <ol>
+		<li>Tell the target sound to stop.</li>
+		<li>Stop all currently playing sounds.</li>
+	      </ol>
+	    </p>
+	    <p>
+	      If sound 10 was playing and we wanted to stop it, we would: 
+	      <ol>
+		<li>Select control row button 0 (playback).</li>
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+		<li><u>Hold control row button 0</u> and press the pad corresponding to sound 10.  Sound 10's pad will turn off to indicate playback for that sound has stopped.</li>
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+	      </ol>  
+	    </p>
+	    <p>
+	      If sounds 2, 5, 10, and 15 were playing and we wanted to stop all of them, we would: 
+	      <ol>
+		<li>Select control row button 0 (playback).</li>
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+		<li>Press control row button 0 and all pads corresponding to "remembered sounds" will turn off to indicate all playback has stopped.</li>
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+	      </ol>  
+	    </p>
+	  </li><br />
+	  <li>
+	    <p id="stereomonitors">
+	      <h5><b>monitoring channel inputs</b></h5>
+	    </p>
+	    <p>
+	      For convenience, a row of the sampler is reserved for quickly monitoring each channel input through your soundcard's channel zero and channel one outputs.  For more discreet monitoring during a live situation, consider reserving two of your soundcard's outputs for headphones-only monitoring.
+	    </p>
+	    <p>
+	      If we wanted to monitor a soundcard's channel input six:
+	      <ol>
+		<li>Count seven buttons from the left of the "monitors select" row.</li>
+		<li>Press that button.  The led will light and input channel six of your audio card is now being directed through output channels zero and one.</li>
+		<p>
+		  <div id="layout_quadrant_sampler_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+	      </ol>  
+	    </p>
+	  </li></br />
+	  <li>
+	    <p id="effects">
+	      <h5><b>applying simple effects to a sound</b></h5>
+	    </p>
+	    <p>
+	      <i>candor</i> has simple effects to apply to each remembered sound. These are coarse playback speed, reverse playback, simple attack/decay envelopes, and click reduction.
+	    </p>
+	    <p>
+	      <div id="layout_quadrant_step_assignment_monome">
+		<center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		</center>
+		<center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div></center>
+		<center><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div>
+		</center>
+	      </div>
+	    </p>
+	    <p>
+	      <div id="layout_monome_key" class="sampler_legend_color"></div> <span class="legend_text"> playback speed row,  </span> <div id="layout_monome_key" class="sequencer_legend_color"> </div> <span class="legend_text"> attack envelope,</span> <div id="layout_monome_key" class="monitors_legend_color"></div> <span class="legend_text">decay envelope</span><br /><br />  
+	    </p>
+	    <p id="effects_speed">
+	      Along the "playback speed row", from left to right the speeds are ordered 25%, 50%, 75%, 100%, 125%, 150%, 175%, and 200%.  To set the playback speed of a sound at 50% speed:
+	    </p>
+	    <p>
+	      <ol>
+	      <li>Count two buttons from the left of the "playback speed row".</li>
+	      <li>Press that button.  If you retrigger sounds from the sampler that are enabled for effects, or retoggle effects for a sound, that sound will inherit the current effects settings.</li>
+		<p>
+		  <div id="layout_quadrant_step_assign_left_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+	      </ol>  
+	    </p>
+	    <p>
+	      <ol>
+	      <li>To play the sound at normal speed, count four buttons from the left.</li>
+	      <li>Press that button.  If you retrigger sounds from the sampler that are enabled for effects, or retoggle effects for a sound, that sound will play at normal speed.</li>
+		<p>
+		  <div id="layout_quadrant_step_assign_left_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+	      </ol>
+	    </p>
+	    <p>
+	      <ol>
+		<li>To play a sound in reverse, hold down the default-lit button four buttons from the left on the "playback speed row".</li>
+		<li>With that button still held, press the leftmost button.  That button will begin to blink.</li>
+		<li>Press the default or 'held' button again.  If you retrigger sounds from the sampler that are enabled for effects, or retoggle effects for a sound, that sound will play at 100% speed, but in reverse.  Play around with the other speed settings!</li>
+		<p>
+		  <div id="layout_quadrant_step_assign_left_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" style="background-color: yellow"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		  <p>
+		    <div id="layout_monome_key" style="background-color: yellow"></div> blinking
+		  </p>
+		</p>
+	      </ol>
+	    </p><br />
+	    <p id="effects_ramps">
+	      Along the "attack envelope" and "decay envelope" rows, the lengths of the envelopes are relative to the length of the affected sound. From left to right the envelope proportions are 0%, 1%, 5%, 10%, 25%, 50%, 75%, and 99%.:
+	    </p>
+	    <p>
+	      <ol>
+	      <li>To set the attack envelope to 10%, count four buttons from the left on the "attack envelope" row.</li>
+	      <li>Press that button.  If you retrigger sounds from the sampler that are enabled for effects, or retoggle effects for a sound, that sound will inherit the current effects settings.</li>
+		<p>
+		  <div id="layout_quadrant_step_assign_right_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+	      </ol>
+	    </p>
+	    <p>
+	      <ol>
+	      <li>To set the decay envelope to 50%, count four buttons from the left on the "attack envelope" row.</li>
+	      <li>Press that button.  If you retrigger sounds from the sampler that are enabled for effects, or retoggle effects for a sound, that sound will inherit the current effects settings.</li>
+		<p>
+		  <div id="layout_quadrant_step_assign_right_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+	      </ol>
+	    </p>
+	    <p>
+	      <ol>
+	      <li>In order to reduce clipping on the start and ending of a track, hold the left-most button on the "attack envelope" and "decay envolope" row.</li>
+	      <li>The buttons will begin to blink.  If you retrigger sounds from the sampler that are enabled for effects, or retoggle effects for a sound, that sound will inherit reduced clipping.  Reduced clipping may be combined with an attack or decay envolope (but not both).</li>
+		<p>
+		  <div id="layout_quadrant_step_assign_right_monome">
+		    <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key" style="background-color: yellow"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		    <center><div id="layout_monome_key" style="background-color: yellow"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		    </center>
+		  </div>
+		</p>
+		</p>
+		<div id="layout_monome_key" style="background-color: yellow"></div>blinking
+		<p>
+	      </ol>
+	    </p>
+	  </li>
+	</ol>
+      </div>
+      
+      <div id="sequencer">
+	<h4><b>7. candor sequencer</b></h4>
+	<ol>
+	  <li>
+	    <p id="sequencer overview">
+	      <h5><b>overview</b></h5>
+	    </p>
+	    <p>
+	      The sequencer is <i>candor</i>'s facility for coordinating the triggering of existing <b>remembered sounds</b>.  It features a maximum of 48 steps, each step consisting of 6 optional voices.
+	    </p>
+	    <p>
+	      The monome sequencer interface provides, instead of the 48 remembered sounds, a timeline/steps view (showing general sequencer position and allows toggling of each step's voices), a control row for thumbing thru each of the row's toggle "pages", coarse tempo/recordable tap tempo control, and toggling sequencer transport.
+	    </p>
+	    <p>
+	      <div id="layout_monome_key" class="remembered_sounds_legend_color"></div> <span class="legend_text"> sequencer timeline/voice toggling </span> <div id="layout_monome_key" class="timeline_view_color timeline_view_pos"> </div> <span class="legend_text"> timeline view </span> <div id="layout_monome_key" class="control_row_legend_color"> </div> <span class="legend_text"> steps paging </span> 
+<div id="layout_monome_key" class="monitors_legend_color"> </div> <span class="legend_text"> coarse tempo control</span> <div id="layout_monome_key" class="transport_color transport_pos"> </div> <span class="legend_text"> record taps, pause/resume sequencer </span> 
+	    </p>
+	    <br />
+	    <br />
+	    <p>
+	      <div id="layout_quadrant_sequencer_monome">
+		<center class="top_monome_key"><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div></center>
+		<center><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div></center>
+		<center><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div></center>
+		<center><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div></center>
+		<center><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div></center>
+		<center><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div><div id="layout_monome_key" class="remembered_sounds_color"></div></center>
+		<center><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div></center>
+		<center><div id="layout_monome_key" class="timeline_view_color"></div><div id="layout_monome_key" class="control_row_color"></div><div id="layout_monome_key" class="control_row_color"></div><div id="layout_monome_key" class="control_row_color"></div><div id="layout_monome_key" class="control_row_color"></div><div id="layout_monome_key" class="control_row_color"></div><div id="layout_monome_key" class="control_row_color"></div><div id="layout_monome_key" class="transport_color"></div>
+		</center>
+	      </div>
+	    </p>
+	    <br />
+	    <p>
+	      The default mode of the sequencer is the <b>timeline view</b>, an LED moving along the top 48 buttons representing the sequencer's current step in realtime.  The next 6 buttons in the <b>steps paging</b> row represent each of the 48 steps; button 1 replaces the timeline view with steps 0-7, button 2 provides steps 8-15, provides 16-23 and soforth.  Button 7 in this row pauses and resumes the sequencer's movement.  Detailed, task-based desriptions follow in the coming minisections.  Step-assignment is described in its own, full-sized section called <a href="#sequencerassign">assigning a sound to a step's voice</a>.
+	    </p>
+	    </li>
+	  <li>
+	    <p id="sequencerpauseresume">
+	      <h5><b>pausing and resuming the sequencer</b></h5>
+	    </p>
+	    <p>
+	      Pausing the sequencer interrupts its "transport" or progression from one step to another.  Once you resume transport, the sequencer picks up on the last step where it left off.
+	    </p>
+	    <p>
+	      If we wanted to pause the sequencer from the monome:
+	    <p>
+	      <ol>
+		<li>Hold down the steps paging row button 0 (timeline view).</li>
+		<li>While holding down button steps paging row button 0, press steps paging row button 7 (sequencer pause)</li>
+                <li>Steps paging row button 7 will begin to blink.</li>
+		<li>While holding down steps paging row button 0, again press steps paging row button 7</li>
+                <li>Button 7 of steps paging row will light and the sequencer will now be paused.</li>
+		  <p>
+		    <div id="layout_quadrant_sequencer_monome">
+		      <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div>
+		      </center>
+		    </div>
+		  </p>
+	      </ol>
+	      <p>
+	      If we wanted to resume the sequencer from the monome:
+	    <p>
+	      <ol>
+		<li>Hold down steps paging row button 0 (timeline view).</li>
+		<li>While Holding down steps paging row button 0, press steps paging row button 7 (sequencer pause).</li>
+		<li>Steps paging row button 0's light will turn off and the sequencer will resume transport.</li>
+		  <p>
+		    <div id="layout_quadrant_sequencer_monome">
+		      <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		      </center>
+		    </div>
+		  </p>
+	      </ol><br />
+	  </li>
+	  <li>
+	    <p id="sequencerclock">
+	      <h5><b>sequencer as a master clock or slave</b></h5>
+	    </p>
+	    <p>
+	      Through open sound control, <i>candor</i> provides a facility for either slaving the sequencer to the master clock of another external device or acting as its own master clock.
+	    </p>
+	    <p>
+	      The clock output is on by default.  A message will be sent out at each step of the sequencer.  The path of the message '/candor/clock' is accompanied by an integer representing the sequencer's current step number (0-47).  Connect to the osc sending port with your favorite program and you will see messages that look like the one below:
+<pre>
+/candor/clock 45
+</pre>
+	    </p>
+	    <p>
+	      The clock input is activated through the monome or another osc message described in the following subsections.  Connect to the osc receiving port with your favorite program and send a message simply consisting of the path '/candor/clock'.  Normal transport will turn off and the sequencer will advance each time the <i>candor</i> receiving port accepts a message with the prementioned path.  For clarity an example of the message is shown:
+<pre>
+/candor/clock
+</pre>
+	    </p><br />
+	    <p>
+	      If we wanted to pause the sequencer from the monome:
+	    <p>
+	      <ol>
+		<li>Hold down the steps paging row button 0 (timeline view).</li>
+		<li>While holding down button steps paging row button 0, press steps paging row button 7 (sequencer pause)</li>
+                <li>Steps paging row button 7 will begin to blink.</li>
+		<li>While holding down steps paging row button 0, again press steps paging row button 7</li>
+                <li>Button 7 of steps paging row will light and the sequencer will now be paused.</li>
+		  <p>
+		    <div id="layout_quadrant_sequencer_monome">
+		      <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div>
+		      </center>
+		    </div>
+		  </p>
+	      </ol>
+	      <p>
+	      If we wanted to resume the sequencer from the monome:
+	    <p>
+	      <ol>
+		<li>Hold down steps paging row button 0 (timeline view).</li>
+		<li>While Holding down steps paging row button 0, press steps paging row button 7 (sequencer pause).</li>
+		<li>Steps paging row button 0's light will turn off and the sequencer will resume transport.</li>
+		  <p>
+		    <div id="layout_quadrant_sequencer_monome">
+		      <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		      </center>
+		    </div>
+		  </p>
+	      </ol><br />
+	  </li>
+          <li>
+	    <p id="taptemporecord">
+	      <h5><b>setting the sequencer to follow tap-tempo</b></h5>
+	    </p>
+	    <p>
+	      In <i>candor</i> it is possible use a monome to record a tap rhythm for the sequencer to follow.  This feature will temporarily disable the internally clocked bpm transport.
+	    </p>
+	    <p>
+	      If we wanted to record a tempo for the sequencer to follow:
+	    <p>
+	      <ol>
+		<li>Hold down the steps paging row button 0 (timeline view).</li>
+		<li>While holding down button steps paging row button 0, press steps paging row button 7 (tap begin record)</li>
+                <li>Steps paging row button 7 will begin to blink.</li>
+		<li>Now, begin to advance the playhead by tapping steps paging row button 7.</li>
+		<li>While holding down steps paging row button 0, again press steps paging row button 7</li>
+                <li>Button 7 of steps paging row will light and the sequencer will repeat the timing of your taps from earlier.</li>
+		  <p>
+		    <div id="layout_quadrant_sequencer_monome">
+		      <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div>
+		      </center>
+		    </div>
+		  </p>
+	      </ol>
+	      <p>
+	      If we wanted to resume non-tap-tempo sequencer operation:
+	    <p>
+	      <ol>
+		<li>Hold down steps paging row button 0 (timeline view).</li>
+		<li>While Holding down steps paging row button 0, press steps paging row button 7 (tap stop record).</li>
+		<li>Steps paging row button 0's light will turn off and the sequencer will resume "normal" transport.</li>
+		  <p>
+		    <div id="layout_quadrant_sequencer_monome">
+		      <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		      </center>
+		    </div>
+		  </p>
+	      </ol><br />
+	  </li>
+	  <li>
+	    <p id="sequencertempo">
+	      <h5><b>adjusting the sequencer's tempo</b></h5>
+	    </p>
+	    <p>
+	      Aside from tap-tempo, the sequencer's speed may be adjusted using coarse or fine controls.
+	    </p>
+	    <p>
+	      The sequencer's coarse tempo controls are available from a horizontal slider in increments of 15, 30, 60, 120, 240, 480, 600, and 700bpm. Ranges are selected from smallest to greatest tempo, left to right.
+	    </p>
+	    <p>
+	      <ol>
+		<li>To set the sequencer to run at 240bpm, count five buttons from the left of the "coarse tempo control".</li>
+		<li>Press the button and the sequencer will now be rolling at 240bpm.</li>
+		  <p>
+		    <div id="layout_quadrant_sequencer_monome">
+		      <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		      </center>
+		    </div>
+		  </p>
+	      </ol><br />
+	    </p>
+	    <p>
+	      The sequencer's fine tempo controls are located on the lower left-hand quadrant of the monome, one button on the left side of the <a href="#sequencerassign">step selection row</a> and another on the right.  Each press of the control raises or lowers the currently held tempo by 1bpm.
+	    </p>
+	    <p>
+	      <ol>
+		<li>To lower the tempo by 1bpm, press the left fine tempo control button.</li>
+		<li>To raise the tempo by 1bpm, press the right fine tempo control button.</li>
+		  <p>
+		    <div id="layout_quadrant_step_assign_left_monome">
+		      <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key" class="transport_color"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="transport_color"></div>
+		      </center>
+		    </div>
+		    <p>
+		    <div id="layout_monome_key" class="transport_color transport_pos"> </div> <span class="legend_text"> raise/lower current tempo by 1bpm </span> 
+		    </pr>
+		  </p>
+	      </ol><br /><br />
+	    </p>
+	  </li>
+	  <li>
+	    <p id="sequencerassign">
+	      <h5><b>assigning a sound to a step's voice</b></h5>
+	    </p>
+            <p>
+		One of the more interesting features of <i>candor</i> is the ability to assign sounds recorded (or loaded) through the sampler to steps of the sequencer.  This allows one to retrigger the playback of samples in a predictable manner.  The sequencer consists of a total forty-eight steps, each step possessing six independent voices.  That is, with every advancement of the playhead up to six unique sounds may be triggered at the same time.  The bottom 128 keys of the monome are dedicated to step assignment, simple effects, and fine tempo adjustment.  Effects and fine tempo adjustment will be discussed in a later section.
+	    </p>
+	    <p>
+	      <div id="layout_quadrant_step_assignment_monome">
+		<center class="top_monome_key"><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div></center>
+		<center><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div></center>
+		<center><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div></center>
+		<center><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div></center>
+		<center><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div></center>
+		<center><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div></center>
+		<center><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div></center>
+		<center><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div>
+		</center>
+		<center class="top_monome_key" class="sequencer_color"><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div></center>
+		<center><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div></center>
+		<center><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sampler_color"></div></center>
+		<center><div id="layout_monome_key" class="sampler_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key" class="sequencer_color"></div></center>
+		<center><div id="layout_monome_key" class="sequencer_color"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div><div id="layout_monome_key" class="monitors_color"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		</center>
+	      </div>
+	    </p>
+	    <p>
+	      <div id="layout_monome_key" class="sampler_legend_color"></div> <span class="legend_text"> step/voice assignment,  </span> <div id="layout_monome_key" class="sequencer_legend_color"> </div> <span class="legend_text">current sound select,</span> <div id="layout_monome_key" class="monitors_legend_color"></div> <span class="legend_text">step selection row, </span> <div id="layout_monome_key" class="stepassign_legend_color"></div> <span class="legend_text">effects and fine sequencer tempo</span><br /><br />  
+	    </p>
+	    <p>
+	      There are three major components to assigning a sound to one of the sequencer's steps:
+	      <ol>
+		<li>Current sound select, or which sample you're currently using for step assignment. Each key's position represents the corresponding sound on the sampler.</li>
+		<li>Step/voice assignment, each of the eight columns represents a step. Each of the six buttons in the column represents a voice for that step.</li>
+		<li>Step selection row, provides access to each of the forty-eight steps.  There are six buttons in this row, each displays a range of eight steps on the "step/voice assignment" area.  If you'd like to assign steps 1-8, press the leftmost button.  If you'd like to assign 40-48, press the rightmost one.</li>
+	      </ol>
+	      <br />
+	    <p>
+	      Selecting the current sound
+	      <ol>
+	      <li>To assign sound one of forty-eight, look at the corresponding button on the sampler.</li>
+	      <li>Since the corresponding button is the most top-left, press the most top-left button on the 'current sound select' area.</li>
+	      <p>
+	      <div id="layout_quadrant_step_assignment_monome">
+		<center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		</center>
+		<center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		</center>
+	      </div>
+	      <br />
+	      </p>
+	      </ol>
+	    </p>
+	    <p>
+	      Finding the correct step for step assignment
+	      <ol>
+	      <li>To assign your sound to voice two of six, step twenty-seven, the correct "step/voice assignment" page must be selected on the "step selection row".</li>
+	      <li>The six pages of the "step selection row" represent steps 1-8, 9-16, 17-24, 25-32, 33-40, and 41-48.  Page four must be selected for range 25-32.</li>
+	      <p>
+	      <div id="layout_quadrant_step_assignment_monome">
+		<center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		</center>
+		<center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		</center>
+	      </div>
+	      <br />
+	      </p>
+	      </ol>
+	    </p>
+<p>
+	      Assigning the selected sound to a voice
+	      <ol>
+	      <li>After you've selected a sound to assign and found the correct page for the desired step, the next step is to assign the voice.</li>
+	      <li>Currently on page four, in the range of 25-32, count three columns from the left for step twenty-seven's voices.  Then count two buttons down for step twenty-seven, voice two.</li>
+	      <li>Press the button.  Sound one has been assigned to step twenty-seven, voice two.</li>
+	      <p>
+	      <div id="layout_quadrant_step_assignment_monome">
+		<center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		</center>
+		<center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		<center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		</center>
+	      </div>
+	      </p>
+	      </ol>
+	    </p>
+	  </li><br />
+	  <li>
+	    <p id="sequencertoggle">
+	      <h5><b>toggling a step's voice to trigger</b></h5>
+	    </p>
+	    <p>
+	      After a step's voice has been assigned, it must be toggled to trigger before the sequencer initiates playback.
+	    </p>
+	    <p>
+	      In the previous section, sound 0 was assigned to step twenty-seven, voice two.  This step/voice will be toggled for triggering.
+	    <p>
+	      <ol>
+		<li>Similar to how the correct step was found during step assignment, the step for voice toggling is found the same way.</li>
+		<li>On the "steps paging" row of the sequencer, select page four to access the 25-32 step range.</li>
+                <li>For step twenty-seven, count three columns from the left, then count two buttons down for voice two.</li>
+		<li>Press that button and its led will light.  When the sequencer's playhead reaches that step, sound 0 will be triggered.</li>
+		  <p>
+		    <div id="layout_quadrant_sequencer_monome">
+		      <center class="top_monome_key"><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div></center>
+		      <center><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key" class="lit_pad"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div><div id="layout_monome_key"></div>
+		      </center>
+		    </div>
+		  </p>
+	      </ol><br />
+	  </li>
+        </ol>
+	  
+<div id="opensoundcontrol">
+  <h4><b>8. open sound control</b></h4>
+  <ol>
+    <li>
+      <p id="opensoundcontroloverview">
+	<h5><b>overview</b></h5>
+	<p>
+	  The open sound control interface provided by <i>candor</i> expresses functions of Ficus and clock-related messages for the sequencer. While the osc interface can be used simulataneously with the monome, the monome may not update its interface for all state changes initiated by osc messages. Also keep in mind you have a maximum of forty-eight banks for sounds and eight channels in+out for related functions.<br /><br />
+	</p>
+        <p>/candor/load si [path] [bank] <b><i>-- loads a wav from filesystem</i></b></p>    
+	<p>/candor/loop ii [bank] [state] <b><i>-- sets looping state of a bank</i></b></p>
+	<p>/candor/setmixout iii [bank] [channel] [state] <b><i>-- sets 1/on or 0/off state for mixing of capture/playback channels</i></b><br />
+	  /candor/setmixin iii [bank] [channel] [state]</p>
+	<p>/candor/jackmonitor iii [channel_out] [channel_in] [state] <b><i>-- makes raw JACK port connections, 1/on 0/off</i></b></p>
+	<p>/candor/playback i [bank] <b><i>-- plays back a sound</i></b></p>
+	<p>/candor/playback_speed if [bank] [speed_multiplier] <b><i>-- sets playback speed of a sound, positive/negative multiplier</i></b></p>
+      <p>/candor/playback_rampup if [bank] [length] <b><i>-- amplitude ramp, decimal fraction of sound</i></b><br />
+	/candor/playback_rampdown if [bank] [length]</p>
+      <p>/candor/capture ii [bank] [seconds] <b><i>-- begin capture on sound for n seconds</i></b></p>
+      <p>/candor/capturef ii [bank] [frames] <b><i>-- begin capture on sound for n frames</i></b></p>
+      <p>/candor/durationf_out i [bank] <b><i>-- get duration of sound in frames</i></b></p>
+      <p>/candor/durationf_in i [bank] <b><i>-- get duration of captured sound in frames (may or may not be loaded in candor)</i></b></p>
+      <p>/candor/killplayback i [bank] <b><i>-- stops playback of sound</i></b></p>
+      <p>/candor/killcapture i [bank] <b><i>-- stops capture of sound</i></b></p>
+      <p>/candor/isplaying i [bank] <b><i>-- returns whether sound is playing,  1/is and 0/isn't</i></b></p>
+      <p>/candor/iscapturing i [bank] <b><i>-- returns whether sound is capturing</i></b></p>
+      <p>/candor/islooping i [bank] <b><i>-- returns whether sound is looping</i></b></p>
+      <p>/candor/clock <b><i>-- if clock input is turned on via monome, advance candor's sequencer by one step</b></i></p>
+      </p>
+    </li>
+  </ol>
+</div>
+</div>
+</div>
+
+      <hr>
+
+</div> <!-- /container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+
+</body>
+</html>
