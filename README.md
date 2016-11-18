@@ -15,13 +15,13 @@ Contact me at mrafoster@gmail.com
 ## Building
 git
 ```
-$ git clone https://github.com/bonemurmurer/candor.git
+$ git clone https://github.com/murrayfoster/candor.git
 $ cd candor
 $ make
 ```
 zip
 ```
-$ wget https://github.com/bonemurmurer/candor/archive/master.zip
+$ wget https://github.com/murrayfoster/candor/archive/master.zip
 $ unzip master.zip
 $ rm master.zip
 $ cd candor-master
@@ -40,4 +40,4 @@ After building from the previous step
 ```
 
 ## Documentation
-http://bonemurmurer.github.io/candor/
+http://murrayfoster.github.io/candor/
