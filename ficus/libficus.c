@@ -1099,10 +1099,9 @@ ficus_setup(char *client_name, char *path, char *prefix, int bit_depth)
   fifo_setup();
   set_callbacks();
  
+  allocate_ports(NUM_CHANNELS, NUM_CHANNELS);
   if (activate_client() == 1)
     return 1;
-
-  allocate_ports(NUM_CHANNELS, NUM_CHANNELS);
 
   setup_recbanks(path, prefix, bit_depth);
 
