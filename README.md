@@ -40,4 +40,4 @@ After building from the previous step
 ```
 
 ## Documentation
-http://murrayfoster.github.io/candor/
+http://resinbeard.github.io/candor/
